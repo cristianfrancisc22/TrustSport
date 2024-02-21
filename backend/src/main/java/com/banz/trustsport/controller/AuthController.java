@@ -29,7 +29,7 @@ public class AuthController {
     }
 
     @PostMapping("/signup")
-    public ResponseEntity<User> registerUser(@Valid @RequestBody RegisterUserDTO userRegistrationData) {
+    public ResponseEntity<?> registerUser(@Valid @RequestBody RegisterUserDTO userRegistrationData) {
         try {
             // If email and username are unique, proceed with user creation
             User createdUser = userService.create(userRegistrationData);
@@ -37,12 +37,13 @@ public class AuthController {
             return new ResponseEntity<>(createdUser, HttpStatus.CREATED);
         } catch (DuplicateKeyException e) {
             log.error("Error creating user - DuplicateKeyException: {}", e.getMessage());
-            return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
+            return new ResponseEntity<>("Email or username already exists", HttpStatus.BAD_REQUEST);
         } catch (Exception e) {
             log.error("Error creating user: {}", e.getMessage());
-            return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
+            return new ResponseEntity<>("An error occurred while creating the user", HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
+
 
 
 

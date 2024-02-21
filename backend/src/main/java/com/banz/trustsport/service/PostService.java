@@ -12,6 +12,10 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
+import javax.imageio.ImageIO;
+import java.awt.image.BufferedImage;
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.util.*;
 
@@ -35,14 +39,24 @@ public class PostService {
 
     public void uploadThumbnail(Long newsID, MultipartFile file) {
         Map<String, String> metadata = new HashMap<>();
-        metadata.put("Content-Type", file.getContentType());
+        metadata.put("Content-Type", "image/webp"); // Set content type to WebP
         metadata.put("Content-Length", String.valueOf(file.getSize()));
 
         String path = String.format("%s", Bucket.IMAGES.getBucketName());
-        String filename = String.format("%s-%s", UUID.randomUUID(), file.getOriginalFilename());
+        String filename = String.format("%s.webp", UUID.randomUUID()); // Save with .webp extension
 
         try {
-            fileStore.save(path, filename, Optional.of(metadata), file.getInputStream());
+            // Read the uploaded image
+            BufferedImage image = ImageIO.read(file.getInputStream());
+
+            // Convert the image to WebP format
+            ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
+            ImageIO.write(image, "webp", outputStream);
+
+            // Save the WebP image to the file store
+            fileStore.save(path, filename, Optional.of(metadata), new ByteArrayInputStream(outputStream.toByteArray()));
+
+            // Update the post with the WebP thumbnail link
             Post post = postRepository.getPostById(newsID);
             post.setThumbnailLink(filename);
             postRepository.save(post);
