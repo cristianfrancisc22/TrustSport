@@ -23,6 +23,7 @@ public class AuthController {
     private final TokenService tokenService;
     private final UserService userService;
 
+
     public AuthController(TokenService tokenService, UserService userService) {
         this.tokenService = tokenService;
         this.userService = userService;
@@ -33,6 +34,7 @@ public class AuthController {
         try {
             // If email and username are unique, proceed with user creation
             User createdUser = userService.create(userRegistrationData);
+            userService.sendEmail(createdUser);
             log.info("User '{}' created", createdUser.getUsername());
             return new ResponseEntity<>(createdUser, HttpStatus.CREATED);
         } catch (DuplicateKeyException e) {
