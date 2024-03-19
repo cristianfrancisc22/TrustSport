@@ -15,8 +15,7 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
-import java.time.LocalDate;
-import java.util.*;
+
 
 
 @Service
@@ -152,25 +151,5 @@ public class UserService {
         emailSenderService.sendEmail(createdUser.getEmail());
     }
 
-//    public void subscribe(String name, int duration) {
-//        Optional<User> optionalUser = userRepository.findByUsername(name);
-//        if (optionalUser.isPresent()) {
-//            User user = optionalUser.get();
-//
-//            // Determine the end date based on the duration
-//            LocalDate endDate = switch (duration) {
-//                case 1 -> LocalDate.now().plusMonths(1); // 1 month
-//                case 3 -> LocalDate.now().plusMonths(3); // 3 months
-//                case 6 -> LocalDate.now().plusMonths(6); // 6 months
-//                case 12 -> LocalDate.now().plusYears(1); // 12 months
-//                default -> throw new IllegalArgumentException("Invalid duration");
-//            };
-//
-//            user.setSubscribedUntil(endDate);
-//            userRepository.save(user);
-//        } else {
-//            throw new EntityNotFoundException("User not found with username: " + name);
-//        }
-//    }
 
 }
