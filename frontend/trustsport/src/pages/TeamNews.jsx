@@ -33,16 +33,16 @@ export default function TeamNews() {
     
     return (
         <Link to={{ pathname: `/news`, state: { team: team } }} className="flex-shrink max-w-full w-full sm:w-1/3 px-3 pb-3 pt-3 sm:pt-0 border-b-2 sm:border-b-0 border-dotted border-gray-100">
-        <div class="bg-white py-6">
-        <div class="xl:container mx-auto px-3 sm:px-4 xl:px-2">
-            <div class="flex flex-row flex-wrap">
-            <div class="flex-shrink max-w-full w-full overflow-hidden">
-                <div class="w-full py-3">
-                <h2 class="text-gray-800 text-2xl pt-3 font-bold">
-                    <span class="inline-block h-5 border-l-3 border-red-600 mr-2"></span>{team}
+        <div className="bg-white py-6">
+        <div className="xl:container mx-auto px-3 sm:px-4 xl:px-2">
+            <div className="flex flex-row flex-wrap">
+            <div className="flex-shrink max-w-full w-full overflow-hidden">
+                <div className="w-full py-3">
+                <h2 className="text-gray-800 text-2xl pt-3 font-bold">
+                    <span className="inline-block h-5 border-l-3 border-red-600 mr-2"></span>{team}
                 </h2>
                 </div>
-                <div class="flex flex-row flex-wrap -mx-3">
+                <div className="flex flex-row flex-wrap -mx-3">
                     {
                         teamNews.map((news, index) => (
                             <SimpleNews key={index} news={news}/>
