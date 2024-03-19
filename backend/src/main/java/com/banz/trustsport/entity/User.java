@@ -10,7 +10,6 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 import org.springframework.security.crypto.password.PasswordEncoder;
-
 import java.util.Collections;
 import java.util.Set;
 
@@ -39,11 +38,15 @@ public class User {
     @Size(min = 8, max = 255)
     private String password;
 
+    private String description;
+
+    @Column(name="profile_image")
+    private String profileImage;
+
     @ElementCollection(targetClass = Authority.class, fetch = FetchType.EAGER)
     @Enumerated(EnumType.STRING)
     @CollectionTable(name = "user_authorities", joinColumns = @JoinColumn(name = "user_id"))
     private Set<Authority> authorities = Collections.singleton(Authority.USER);
-
 
     @Size(max = 255)
     @Column(name = "first_name")
@@ -53,6 +56,7 @@ public class User {
     @Column(name = "last_name")
     private String lastName;
 
+
     public User(String username, String email, String password) {
         this.username = username;
         this.password = password;
@@ -60,9 +64,16 @@ public class User {
         this.authorities = Collections.singleton(Authority.USER);
     }
 
+    public void addAuthority(Authority authority) {
+        this.authorities.add(authority);
+    }
+
+    public void removeAuthority(Authority authority) {
+        this.authorities.remove(authority);
+    }
+
     public void encodePassword(PasswordEncoder passwordEncoder, String rawPassword) {
         this.password = passwordEncoder.encode(rawPassword);
     }
 
-    // ... (other methods)
 }
