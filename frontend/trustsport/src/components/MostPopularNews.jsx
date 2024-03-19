@@ -17,7 +17,7 @@ const MostPopularNews = () => {
 
     const fetchMostPopularNews = async () => {
         try {
-            const response = await fetch('http://localhost:8080/api/v1/getMostPopularNews');
+            const response = await fetch('http://localhost:8080/api/v1/post/most-viewed');
             return await response.json();
         } catch (error) {
             console.error('Error fetching most popular news:', error);
