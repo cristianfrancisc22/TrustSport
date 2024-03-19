@@ -3,130 +3,170 @@ package com.banz.trustsport.service;
 
 import com.amazonaws.services.cloudfront.model.EntityNotFoundException;
 import com.banz.trustsport.entity.Post;
+import com.banz.trustsport.entity.User;
 import com.banz.trustsport.enums.Bucket;
+import com.banz.trustsport.enums.PostType;
+import com.banz.trustsport.enums.SportType;
+import com.banz.trustsport.exceptions.PostNotFoundException;
 import com.banz.trustsport.repository.PostRepository;
-import org.springframework.beans.factory.annotation.Autowired;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
-import javax.imageio.ImageIO;
-import java.awt.image.BufferedImage;
-import java.io.ByteArrayInputStream;
-import java.io.ByteArrayOutputStream;
-import java.io.IOException;
 import java.util.*;
 
 
 @Service
+@Slf4j
 public class PostService {
     PostRepository postRepository;
     FileStore fileStore;
 
-    @Autowired
     public PostService(PostRepository postRepository, FileStore fileStore) {
         this.fileStore = fileStore;
         this.postRepository = postRepository;
     }
 
-    public Long createPost(Post post) {
+    public void createPost(String title, String text, SportType sportType, String championship, String team,
+                           PostType postType, MultipartFile image, User user) {
+        // Create the post
+        Post post = Post.builder()
+                .title(title)
+                .text(text)
+                .sportType(sportType)
+                .championship(championship)
+                .team(team)
+                .postType(postType)
+                .user(user)
+                .nationalPost(isNationalPost(championship)).build();
+
+        // Handle file upload
+        if (image != null && !image.isEmpty()) {
+            // Upload thumbnail
+            addThumbnail(post, image);
+        } else {
+            // If no image uploaded, set thumbnail link to null
+            post.setThumbnail(null);
+        }
+
+    }
+
+    private boolean isNationalPost(String championship) {
+        // Check if the championship is national
+        return championship.equals("LIGA 1") || championship.equals("LIGA 2");
+    }
+
+    public void addThumbnail(Post post, MultipartFile file) {
+        String filename = fileStore.uploadImage(file);
+        post.setThumbnail(filename);
         postRepository.save(post);
-        return post.getId();
     }
 
-
-    public void uploadThumbnail(Long newsID, MultipartFile file) {
-        Map<String, String> metadata = new HashMap<>();
-        metadata.put("Content-Type", "image/webp"); // Set content type to WebP
-        metadata.put("Content-Length", String.valueOf(file.getSize()));
-
-        String path = String.format("%s", Bucket.IMAGES.getBucketName());
-        String filename = String.format("%s.webp", UUID.randomUUID()); // Save with .webp extension
-
-        try {
-            // Read the uploaded image
-            BufferedImage image = ImageIO.read(file.getInputStream());
-
-            // Convert the image to WebP format
-            ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
-            ImageIO.write(image, "webp", outputStream);
-
-            // Save the WebP image to the file store
-            fileStore.save(path, filename, Optional.of(metadata), new ByteArrayInputStream(outputStream.toByteArray()));
-
-            // Update the post with the WebP thumbnail link
-            Post post = postRepository.getPostById(newsID);
-            post.setThumbnailLink(filename);
-            postRepository.save(post);
-        } catch (IOException e) {
-            throw new IllegalStateException(e);
+    public byte[] downloadThumbnail(Long postId) throws Exception {
+        Post post = postRepository.getPostById(postId);
+        if (post == null) {
+            throw new PostNotFoundException("Post with ID " + postId + " not found");
         }
-    }
 
-    public byte[] downloadThumbnail(Long postID) {
         try {
-            Post post = postRepository.getPostById(postID);
-            if (post == null) {
-                // Handle the case where post is null, for example, by throwing an exception or logging an error.
-                post=postRepository.getPostById(3005L);
-                String bucket = Bucket.IMAGES.getBucketName();
-                return fileStore.download(bucket, post.getThumbnailLink());
-            }
             String bucket = Bucket.IMAGES.getBucketName();
-            return fileStore.download(bucket, post.getThumbnailLink());
+            return fileStore.download(bucket, post.getThumbnail());
         } catch (Exception e) {
-            // Handle any other exceptions that might occur during the process.
-            // Log the exception or perform appropriate error handling.
-            e.printStackTrace(); // Example of printing the stack trace.
-            return null; // Or throw a custom exception, return a default image, etc., depending on your application logic.
+            log.error("Failed to download thumbnail for post with ID " + postId, e);
+            throw new Exception("Failed to download thumbnail for post with ID" + postId, e);
         }
     }
-
 
     public Post findById(Long postId) {
-        return postRepository.getPostById(postId);
+        Post post = postRepository.getPostById(postId);
+        Post constructedPost = Post.builder()
+                .id(post.getId())
+                .title(post.getTitle())
+                .text(post.getText())
+                .sportType(post.getSportType())
+                .championship(post.getChampionship())
+                .team(post.getTeam())
+                .nationalPost(post.isNationalPost())
+                .postType(post.getPostType())
+                .thumbnail(post.getThumbnail())
+                .views(post.getViews())
+                .build();
+        constructedPost.setCreatedDate(post.getCreatedDate());
+        constructedPost.setCreatedBy(post.getCreatedBy());
+        constructedPost.setLastModifiedBy(post.getLastModifiedBy());
+        constructedPost.setLastModifiedDate(post.getLastModifiedDate());
+        return constructedPost;
     }
+
 
     @Transactional
     public void incrementViewCount(Long postId) {
         Post post = postRepository.findById(postId)
                 .orElseThrow(() -> new EntityNotFoundException("Post not found with id: " + postId));
-        post.incrementViewCount();
+        post.setViews(post.getViews()+1);
         postRepository.save(post);
     }
 
-    public List<Post> getLatestNews() {
-        return postRepository.findFirst5ByOrderByDateDesc();
+    public List<Post> getLatestPosts() {
+        Pageable pageable = PageRequest.of(0, 5);
+        return postRepository.findTop5ByOrderByIdDesc(pageable);
     }
 
-    public List<Post> getLatest6NewsForChampionship(String championship) {
-        Pageable pageable = PageRequest.of(0, 6); // Pageable for fetching top 5 records
-        return postRepository.findTop6ByChampionshipOrderByDateDesc(championship, pageable);
+    public List<Post> getLatest6PostsForChampionship(String championship) {
+        Pageable pageable = PageRequest.of(0, 6);
+        return postRepository.findTop6ByChampionshipOrderByIdDesc(championship, pageable);
     }
 
-    public List<Post> getLatestInternationalNews() {
-        Pageable pageable = PageRequest.of(0,8);
-        return postRepository.findTop8ByNationalNewsOrderByDateDesc(false,pageable);
+    public List<Post> getLatestInternationalPosts() {
+        Pageable pageable = PageRequest.of(0, 9);
+        return postRepository.findTop9ByNationalPostsOrderByIdDesc(false, pageable);
     }
 
-    public List<Post> getTeamNews(String team) {
-        Pageable pageable = PageRequest.of(0,20);
-        return postRepository.findTop20ByTeamOrderByDateDesc(team, pageable);
+    public List<Post> getTeamPosts(String team) {
+        Pageable pageable = PageRequest.of(0, 20);
+        return postRepository.findTop20ByTeamOrderByIdDesc(team, pageable);
     }
 
-    public Post getNewsById(Long id) {
-        return postRepository.findById(id).orElse(null);
+    public List<Post> getPostsByChampionship(String championship) {
+        Pageable pageable = PageRequest.of(0, 20);
+        return postRepository.findFirst20ByChampionshipOrderByIdDesc(championship, pageable);
     }
 
-    public List<Post> getNewsByChampionship(String championship) {
-        Pageable pageable = PageRequest.of(0,20);
-        return postRepository.findFirst20ByChampionshipOrderByDateDesc(championship, pageable);
+    public List<Post> getMostViewedPosts() {
+        Pageable pageable = PageRequest.of(0, 5);
+        List<Post> posts = postRepository.findFirst5ByOrderByViewsDesc(pageable);
+        List<Post> constructedPosts = new ArrayList<>();
+        for (Post post: posts) {
+            constructedPosts.add(Post.builder().id(post.getId()).title(post.getTitle()).build());
+
+        }
+        System.out.println(constructedPosts.get(0).getId() + "POST ID GET MOST VIEWED");
+
+        return constructedPosts;
     }
 
-    public List<Post> getMostPopularNews() {
-        Pageable pageable = PageRequest.of(0,5);
-        return postRepository.findFirst5ByOrderByViewCountDesc(pageable);
+    public Post getPostById(Long id) {
+        return postRepository.getPostById(id);
     }
+
+
+    public List<Post> getLatestPostsByType(String postType) {
+        Pageable pageable = PageRequest.of(0, 8);
+        PostType postType1 = getPostType(postType);
+        return postRepository.findLatestPostsByPostType(postType1, pageable);
+    }
+
+    public PostType getPostType(String postType) {
+        return switch (postType) {
+            case "news" -> PostType.NEWS;
+            case "editorial" -> PostType.EDITORIAL;
+            case "interview" -> PostType.INTERVIEW;
+            default ->
+                throw new IllegalArgumentException("Unexpected postType: " + postType);
+        };
+    }
+
 }
