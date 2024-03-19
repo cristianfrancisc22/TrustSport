@@ -11,12 +11,12 @@ function MobileNavbar(isMenuOpen) {
                     <div className="text-center py-4 w-full font-bold border-b border-gray-100">TAILNEWS</div>
                     <ul id="side-menu" className="w-full float-none flex flex-col">
                         <NavbarItem text="Home" href="/" />
-                        <NavbarItem text="Liga 1" href="/" />
-                        <NavbarItem text="Liga 2" href="/" />
-                        <NavbarItem text="Fotbal International" href="/" />
-                        <NavbarItem text="Cupa Romaniei" href="/" />
-                        <NavbarItem text="Autentificare" href="/" />
-                        <NavbarItem text="Inregistrare" href="/" />
+                        <NavbarItem text="Liga 1" href="/championship/Liga_1" />
+                        <NavbarItem text="Liga 2" href="/championship/Liga_2" />
+                        <NavbarItem text="Fotbal International" href="/championship/international" />
+                        <NavbarItem text="Cupa Romaniei" href="/championship/Cupa_Romaniei" />
+                        <NavbarItem text="Autentificare" href="/login" />
+                        <NavbarItem text="Inregistrare" href="/signup" />
 
                     </ul>
                 </nav>
