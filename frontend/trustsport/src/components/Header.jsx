@@ -20,7 +20,7 @@ function Header() {
                             <ul className="navbar hidden lg:flex lg:flex-row text-gray-400 text-sm items-center font-bold">
                                 <NavbarItem href="/" text="Home" />
                                 <NavbarItem text="Fotbal national" dropdown={true}/>
-                                <NavbarItem href="index.html" text="Fotbal International" />
+                                <NavbarItem href="/stiri/fotbal/international" text="Fotbal International" />
                                 <NavbarItem href="/login" text="Autentificare" />
                                 <NavbarItem href="/signup" text="Inregistrare" />
                             </ul>
