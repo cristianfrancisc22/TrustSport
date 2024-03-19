@@ -15,7 +15,6 @@ import org.springframework.security.config.annotation.method.configuration.Enabl
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
-import org.springframework.security.config.annotation.web.configurers.oauth2.server.resource.OAuth2ResourceServerConfigurer;
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -27,6 +26,7 @@ import org.springframework.security.oauth2.server.resource.web.BearerTokenAuthen
 import org.springframework.security.oauth2.server.resource.web.access.BearerTokenAccessDeniedHandler;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.util.matcher.AntPathRequestMatcher;
+
 
 import static org.springframework.security.config.Customizer.withDefaults;
 
@@ -48,30 +48,18 @@ public class SecurityConfig {
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         return http
                 .csrf(AbstractHttpConfigurer::disable)
-//                .cors(AbstractHttpConfigurer::disable)
+                .cors(AbstractHttpConfigurer::disable) // Disable CORS for now, configure as needed
                 .authorizeHttpRequests(auth ->
-                        auth.requestMatchers("/api/auth/signup").permitAll()
-                                .requestMatchers("/api/v1/getLatestNews").permitAll()
-                                .requestMatchers("/api/v1/getNewsById/").permitAll()
-                                .requestMatchers("/api/v1/getNewsById/*").permitAll()
-                                .requestMatchers("/api/v1/getTeamNews/*").permitAll()
-                                .requestMatchers("/api/v1/getLatestNews/*").permitAll()
-                                .requestMatchers("/api/v1/getNewsByChampionship/*").permitAll()
-                                .requestMatchers("/api/v1/getLatestInternationalNews").permitAll()
-                                .requestMatchers("api/v1/getMostPopularNews").permitAll()
-                                .requestMatchers("/api/*").permitAll()
-                                .requestMatchers("/api/v1/downloadThumbnail/*").permitAll()
-                                .anyRequest().authenticated()
+                        auth.anyRequest().permitAll()
                 )
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .userDetailsService(jpaUserDetailsService)
-                .oauth2ResourceServer((oauth2) -> oauth2
-                        .jwt(Customizer.withDefaults()))
-                .exceptionHandling(
-                        (ex) -> ex.authenticationEntryPoint(new BearerTokenAuthenticationEntryPoint())
-                                .accessDeniedHandler(new BearerTokenAccessDeniedHandler()))
+                .oauth2ResourceServer((oauth2) -> oauth2.jwt(Customizer.withDefaults()))
+                .exceptionHandling(ex -> ex.authenticationEntryPoint(new BearerTokenAuthenticationEntryPoint())
+                        .accessDeniedHandler(new BearerTokenAccessDeniedHandler()))
                 .build();
     }
+
 
 
     @Bean
