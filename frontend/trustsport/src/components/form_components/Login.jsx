@@ -22,7 +22,6 @@ export default function Login(){
 
     const handleSubmit=(e)=>{
         e.preventDefault();
-        console.log(loginState)
         authenticateUser();
     }
 
@@ -42,7 +41,6 @@ export default function Login(){
              .then(data=>{
                 login(data)
                 //API Success from LoginRadius Login API
-                console.log(data)
              })
              .catch(error=>console.log(error))
     }
