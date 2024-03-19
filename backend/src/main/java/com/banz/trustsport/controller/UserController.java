@@ -116,16 +116,4 @@ public class UserController {
         return ResponseEntity.status(HttpStatus.ACCEPTED).build();
     }
 
-    @PutMapping("/subscribe/{duration}")
-    public ResponseEntity<Void> subscribe(@PathVariable("duration") int duration, Authentication authentication) {
-        try {
-            String username = authentication.getName();
-            userService.subscribe(username, duration);
-            return ResponseEntity.ok().build();
-        } catch (EntityNotFoundException ex) {
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
-        } catch (IllegalArgumentException ex) {
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).build();
-        }
-    }
 }
