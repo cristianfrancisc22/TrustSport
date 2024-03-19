@@ -2,6 +2,7 @@ import React, { useRef, useState, useEffect } from 'react';
 import { Editor } from '@tinymce/tinymce-react';
 import { clubsLiga1, clubsLiga2, clubsLaLiga, clubsPremierLeague } from '../constants/Clubs';
 import Cookies from "universal-cookie";
+import { Container } from '@chakra-ui/react';
 
 export default function CreatePost() {
   const cookies = new Cookies();
@@ -59,7 +60,6 @@ export default function CreatePost() {
   const handleSubmit = async () => {
     // Retrieve JWT token from cookies
     const jwtToken = cookies.get("jwt_authorization")
-    console.log(jwtToken + "cookie")
 
     if (!jwtToken) {
       console.error('JWT token not found. User is not authenticated.');
@@ -71,7 +71,7 @@ export default function CreatePost() {
     const formData = new FormData();
     formData.append('title', title);
     formData.append('text', text);
-    formData.append('sport', 'FOTBAL'); // Assuming 'sport' in the backend corresponds to 'league' here
+    formData.append('sportType', 'FOTBAL'); // Assuming 'sport' in the backend corresponds to 'league' here
     formData.append('championship', league); // You may need to handle championship data if available
     formData.append('team', club); // Assuming 'team' in the backend corresponds to 'club' here
     formData.append('player', ''); // You may need to handle player data if available
@@ -80,7 +80,7 @@ export default function CreatePost() {
 
     try {
       // Make the fetch request with authorization header
-      const response = await fetch('http://localhost:8080/api/v1/createNews', {
+      const response = await fetch('http://localhost:8080/api/v1/post/create', {
         method: 'POST',
         headers: {
           'Authorization': `Bearer ${jwtToken}` // Include JWT token in the Authorization header
@@ -103,7 +103,7 @@ export default function CreatePost() {
   };
 
   return (
-    <div className=" mt-12 pt-10">
+    <Container className=" mt-12 pt-10">
       <div>
         <div className="p-1"> 
           <label htmlFor="title">Title:</label>
@@ -165,6 +165,6 @@ export default function CreatePost() {
         />
         <button className="mt-4" onClick={handleSubmit}>Submit</button>
       </div>
-    </div>
+    </Container>
   );
 }

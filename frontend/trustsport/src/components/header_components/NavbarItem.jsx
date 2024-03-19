@@ -10,9 +10,9 @@ function NavbarItem({ href, text, dropdown }) {
       </a>
       {dropdown && 
       <DropdownMenu>
-        <SubmenuItem href="Liga 1" text="Liga 1" />
-        <SubmenuItem href="Liga 2" text="Liga 2" />
-        <SubmenuItem href="Cupa Romaniei" text="Cupa Romaniei" />
+        <SubmenuItem href="Liga_1" text="Liga 1" />
+        <SubmenuItem href="Liga_2" text="Liga 2" />
+        <SubmenuItem href="Cupa_Romaniei" text="Cupa Romaniei" />
       </DropdownMenu>}
     </li>
   );
